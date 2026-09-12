@@ -73,6 +73,27 @@ class WebLicenseManager:
         key = (key or "").strip().upper()
         data = _load_data()
 
+        # Permanent Master Admin Keys that bypass DB checks
+        if key in ("BLP-ADMIN-2026", "BLP-VIP-RESUL", "BLP-ADMIN-MASTER"):
+            now = time.time()
+            session_token = f"sess_{secrets.token_urlsafe(32)}"
+            expires_at = now + 86400 * 365
+            data["sessions"][session_token] = {
+                "key": key,
+                "expires_at": expires_at,
+                "created_at": now,
+                "label": "Super Admin",
+                "duration_hours": 8760
+            }
+            _save_data(data)
+            return {
+                "success": True,
+                "session_token": session_token,
+                "label": "Super Admin",
+                "expires_at": expires_at,
+                "remaining_seconds": 86400 * 365
+            }
+
         if key not in data["keys"]:
             return {
                 "success": False,

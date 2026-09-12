@@ -729,11 +729,159 @@ async def get_manifest():
         }]
     })
 
+# ==================== ADMIN KEYGEN PORTAL (NO SHELL REQUIRED) ====================
+ADMIN_PIN = "7777"
+
+@app.post("/api/admin/generate-key")
+async def admin_create_key(payload: Dict[str, Any]):
+    pin = str(payload.get("pin", "")).strip()
+    if pin != ADMIN_PIN:
+        raise HTTPException(status_code=403, detail="Yalnış Admin PIN kodu!")
+    
+    duration = int(payload.get("duration", 24))
+    label = str(payload.get("label", "Müştəri Sınaq")).strip() or "Müştəri Sınaq"
+    
+    rec = WebLicenseManager.generate_license_key(duration_hours=duration, label=label)
+    key = rec["key"]
+    
+    msg = (
+        f"Salam! BinaLeadPro Cloud platformasına giriş üçün {duration} saatlıq lisenziya kodunuz:\n\n"
+        f"🔑 Lisenziya Kodu: {key}\n"
+        f"🌐 Sayt Linki: https://binalead.onrender.com\n\n"
+        f"Kodu sayta daxil edərək dərhal istifadəyə başlaya bilərsiniz."
+    )
+    
+    return JSONResponse({
+        "success": True,
+        "key": key,
+        "duration_hours": duration,
+        "label": label,
+        "whatsapp_message": msg
+    })
+
+@app.get("/api/admin/list-keys")
+async def admin_list_keys(pin: str = Query(...)):
+    if pin != ADMIN_PIN:
+        raise HTTPException(status_code=403, detail="Yalnış Admin PIN kodu!")
+    return JSONResponse(WebLicenseManager.list_all_keys())
+
+@app.get("/admin", response_class=HTMLResponse)
+async def serve_admin():
+    return """<!DOCTYPE html>
+<html lang="az" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BinaLeadPro — Admin Açar İdarəetməsi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; color: #f8fafc; }</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl border border-emerald-500/30 mb-3 shadow-lg shadow-emerald-500/10">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h1 class="text-xl font-extrabold text-white">Admin Lisenziya Paneli</h1>
+      <p class="text-xs text-slate-400 mt-1">Render Shell tələb olunmadan birbaşa açar yaradın</p>
+    </div>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Admin PIN:</label>
+        <input id="pinInput" type="password" value="7777" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" placeholder="PIN daxil edin">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Lisenziya Müddəti:</label>
+        <select id="durationSelect" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+          <option value="24">24 Saat (1 Günlük Sınaq)</option>
+          <option value="48">48 Saat (2 Günlük Sınaq)</option>
+          <option value="168">7 Gün (1 Həftə)</option>
+          <option value="720">30 Gün (1 Aylıq Abunə)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Müştərinin Adı / Qeyd:</label>
+        <input id="labelInput" type="text" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" placeholder="Məs: Rauf Makler">
+      </div>
+
+      <button onclick="createKey()" id="btnCreate" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-plus"></i>
+        <span>Yeni Açar Yarat</span>
+      </button>
+
+      <div id="resultBox" class="hidden mt-4 p-4 rounded-2xl bg-slate-800/60 border border-emerald-500/40 space-y-3">
+        <div class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Açar Uğurla Yaradıldı!</div>
+        <div class="flex items-center justify-between bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-700">
+          <span id="resKey" class="font-mono text-base font-extrabold text-white"></span>
+          <button onclick="copyKeyOnly()" class="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Kodu Kopyala</button>
+        </div>
+        <button onclick="copyWhatsAppMsg()" id="btnCopyMsg" class="w-full py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs font-bold transition-all flex items-center justify-center space-x-2">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+          <span>WhatsApp Mesajını Kopyala</span>
+        </button>
+      </div>
+
+      <div class="pt-2 text-center">
+        <a href="/" class="text-xs text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Əsas Sayta Qayıt</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMsg = "";
+    let currentKey = "";
+
+    async function createKey() {
+      const pin = document.getElementById("pinInput").value;
+      const duration = document.getElementById("durationSelect").value;
+      const label = document.getElementById("labelInput").value;
+
+      try {
+        const resp = await fetch("/api/admin/generate-key", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin, duration, label })
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+          currentKey = data.key;
+          currentMsg = data.whatsapp_message;
+          document.getElementById("resKey").innerText = data.key;
+          document.getElementById("resultBox").classList.remove("hidden");
+        } else {
+          alert(data.detail || "Xəta baş verdi.");
+        }
+      } catch (err) {
+        alert("Serverə qoşularkən xəta: " + err);
+      }
+    }
+
+    function copyKeyOnly() {
+      navigator.clipboard.writeText(currentKey);
+      alert("Lisenziya kodu kopyalandı!");
+    }
+
+    function copyWhatsAppMsg() {
+      navigator.clipboard.writeText(currentMsg);
+      const btn = document.getElementById("btnCopyMsg");
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Kopyalandı! WhatsApp-da göndərə bilərsiniz</span>';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-brands fa-whatsapp text-sm"></i> <span>WhatsApp Mesajını Kopyala</span>';
+      }, 2500);
+    }
+  </script>
+</body>
+</html>"""
+
 if __name__ == "__main__":
     import uvicorn
     print("\n" + "═"*70)
     print("🚀 BINA LEAD PRO CLOUD v4.0 — WEB SERVER İŞƏ SALINIR")
     print("✨ Yeni: AI Lead Scoring, CRM Export, WhatsApp Bulk, PWA")
-    print("🌐 Brauzerdə daxil olun: http://127.0.0.1:8000")
-    print("═"*70 + "\n")
-    uvicorn.run("web_server_v2:app", host="0.0.0.0", port=8000, reload=False)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("web_server_v2:app", host="0.0.0.0", port=port, reload=False)
