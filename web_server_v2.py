@@ -277,7 +277,30 @@ async def stop_scraping(session: Dict[str, Any] = Depends(get_current_session)):
     if engine:
         engine.cancel()
         return JSONResponse({"status": "stopping", "message": "Axtarış dayandırılır..."})
-    return JSONResponse({"status": "idle", "message": "Aktiv axtarış tapılmadı."})
+@app.get("/api/debug/system")
+async def debug_system():
+    res = {"version": "v4.2-diagnostics"}
+    try:
+        import curl_cffi
+        res["curl_cffi_version"] = getattr(curl_cffi, '__version__', 'unknown')
+        from curl_cffi import requests as c_requests
+        try:
+            r = c_requests.get("https://bina.az/items/4573130/phones?react=true", impersonate="chrome124", timeout=6)
+            res["cffi_phone_status"] = r.status_code
+            res["cffi_phone_text"] = r.text[:200]
+        except Exception as e:
+            res["cffi_phone_error"] = str(e)
+    except Exception as ex:
+        res["curl_cffi_import_error"] = str(ex)
+
+    try:
+        r2 = requests.get("https://bina.az/items/4573130/phones?react=true", headers={'User-Agent': 'Mozilla/5.0'}, timeout=6)
+        res["requests_phone_status"] = r2.status_code
+        res["requests_phone_text"] = r2.text[:200]
+    except Exception as e:
+        res["requests_phone_error"] = str(e)
+
+    return JSONResponse(res)
 
 @app.get("/api/scrape/stream")
 async def scrape_stream(

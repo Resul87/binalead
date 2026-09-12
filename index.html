@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BinaLeadPro Cloud — Daşınmaz Əmlak İntellekt və Lead Platforması</title>
-  <!-- PWA_MANIFEST -->
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons CDN -->
@@ -428,34 +427,9 @@
             <span>Excel İxrac</span>
           </button>
 
-          <button onclick="exportToCSV()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center space-x-1.5 transition-all border border-slate-700">
+          <button onclick="exportToCSV()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center space-x-1.5 transition-all border border-slate-700">
             <i class="fa-solid fa-file-csv"></i>
             <span>CSV</span>
-          </button>
-
-          <!-- CRM Export Dropdown -->
-          <div class="relative inline-block text-left">
-            <button onclick="toggleCrmMenu(event)" class="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 text-xs font-semibold flex items-center space-x-1.5 transition-all border border-blue-500/30">
-              <i class="fa-solid fa-cloud-arrow-down"></i>
-              <span>CRM</span>
-              <i class="fa-solid fa-chevron-down text-[9px] ml-0.5"></i>
-            </button>
-            <div id="crmMenu" class="hidden absolute right-0 mt-2 w-44 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl z-50 p-1">
-              <button onclick="exportToCRM('hubspot')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 rounded-lg flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-orange-400"></span>
-                <span>HubSpot (.csv)</span>
-              </button>
-              <button onclick="exportToCRM('pipedrive')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 rounded-lg flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>Pipedrive (.csv)</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- WhatsApp Bulk Modal Trigger -->
-          <button onclick="openWhatsAppBulkModal()" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-xs font-semibold flex items-center space-x-1.5 transition-all border border-emerald-500/30">
-            <i class="fa-brands fa-whatsapp text-sm"></i>
-            <span>Toplu WhatsApp</span>
           </button>
         </div>
       </div>
@@ -466,7 +440,6 @@
           <thead class="sticky top-0 z-10 bg-slate-900/95 text-slate-400 uppercase text-[11px] font-semibold tracking-wider border-b border-slate-800">
             <tr>
               <th scope="col" class="py-3 px-3 w-10 text-center">№</th>
-              <th scope="col" class="py-3 px-3 text-center">AI Score</th>
               <th scope="col" class="py-3 px-3">Mənbə</th>
               <th scope="col" class="py-3 px-3">Ad / Əlaqədar Şəxs</th>
               <th scope="col" class="py-3 px-3 text-center">Əlaqə Nömrəsi</th>
@@ -481,7 +454,7 @@
           </thead>
           <tbody id="leadsTableBody" class="divide-y divide-slate-800/60 font-medium">
             <tr id="emptyRowPlaceholder">
-              <td colspan="12" class="text-center py-16 text-slate-500">
+              <td colspan="11" class="text-center py-16 text-slate-500">
                 <i class="fa-solid fa-database text-3xl mb-3 block text-slate-600"></i>
                 Hələ heç bir elan toplanmayıb. Filtrləri seçib <span class="text-emerald-400 font-semibold">"Axtarışa Başla"</span> düyməsinə klikləyin.
               </td>
@@ -524,7 +497,7 @@
         <div class="pt-4 border-t border-slate-800 text-center">
           <p class="text-[11px] text-slate-400">
             Lisenziya kodunuz yoxdur?
-            <a href="https://wa.me/994500000000?text=Salam,%20BinaLeadPro%20Cloud%20sınaq%20kodu%20almaq%20istəyirəm." target="_blank" class="text-emerald-400 font-semibold hover:underline block mt-1">
+            <a href="https://wa.me/994772195050?text=Salam,%20BinaLeadPro%20Cloud%20sınaq%20kodu%20və%20dəstək%20üçün%20yazıram." target="_blank" class="text-emerald-400 font-semibold hover:underline block mt-1">
               <i class="fa-brands fa-whatsapp text-emerald-400 mr-1"></i> Dəstək / Satış ilə Əlaqə
             </a>
           </p>
@@ -910,19 +883,8 @@
       if (hasTemir) conditionTags.push(`<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">Təmirli</span>`);
       if (conditionTags.length === 0) conditionTags.push(`<span class="text-slate-500">-</span>`);
 
-      // AI Lead Score
-      const rawScore = lead["Lead Score"];
-      const score = Math.round(Number(rawScore !== undefined ? rawScore : 50));
-      let scoreBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-800 text-slate-400 border border-slate-700 font-mono">${score}</span>`;
-      if (score >= 80) {
-        scoreBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">🟢 ${score}</span>`;
-      } else if (score >= 60) {
-        scoreBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">🟡 ${score}</span>`;
-      }
-
       tr.innerHTML = `
         <td class="py-3 px-3 text-center text-slate-500 font-mono">${idx}</td>
-        <td class="py-3 px-3 text-center whitespace-nowrap">${scoreBadge}</td>
         <td class="py-3 px-3 whitespace-nowrap">${srcBadge}</td>
         <td class="py-3 px-3 font-semibold text-white whitespace-nowrap">
           <div>${lead["Ad / Mülkiyyətçi"] || lead["Agent Adı"] || "Vasitəçi"}</div>
@@ -1032,163 +994,6 @@
       a.remove();
       URL.revokeObjectURL(url);
     }
-
-    function toggleCrmMenu(e) {
-      if (e) e.stopPropagation();
-      const menu = document.getElementById("crmMenu");
-      if (menu) menu.classList.toggle("hidden");
-    }
-
-    document.addEventListener("click", () => {
-      const menu = document.getElementById("crmMenu");
-      if (menu && !menu.classList.contains("hidden")) {
-        menu.classList.add("hidden");
-      }
-    });
-
-    async function exportToCRM(crmType) {
-      if (leadsData.length === 0) {
-        alert("İxrac ediləcək heç bir lead tapılmadı.");
-        return;
-      }
-      try {
-        const resp = await fetch("/api/export/crm", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Session-Token": currentSessionToken
-          },
-          body: JSON.stringify({ leads: leadsData, crm_type: crmType })
-        });
-        if (resp.ok) {
-          const blob = await resp.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `BinaLeadPro_CRM_${crmType}_${Date.now()}.csv`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(url);
-        } else {
-          alert("CRM faylı yaradılarkən xəta baş verdi.");
-        }
-      } catch (err) {
-        console.error("CRM export error:", err);
-      }
-    }
-
-    function openWhatsAppBulkModal() {
-      if (leadsData.length === 0) {
-        alert("Toplu WhatsApp mesajı üçün əvvəlcə axtarış edib lead toplayın.");
-        return;
-      }
-      document.getElementById("waBulkCount").innerText = `${leadsData.length} ədəd lead seçilib`;
-      document.getElementById("waBulkResults").classList.add("hidden");
-      document.getElementById("waBulkResults").innerHTML = "";
-      document.getElementById("waBulkModal").classList.remove("hidden");
-    }
-
-    function closeWhatsAppBulkModal() {
-      document.getElementById("waBulkModal").classList.add("hidden");
-    }
-
-    let generatedWaLinks = [];
-
-    async function generateWhatsAppLinks() {
-      const msg = document.getElementById("waBulkMessage").value.trim();
-      if (!msg) {
-        alert("Zəhmət olmasa mesaj mətni daxil edin.");
-        return;
-      }
-      try {
-        const resp = await fetch("/api/whatsapp/bulk", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Session-Token": currentSessionToken
-          },
-          body: JSON.stringify({ leads: leadsData, message: msg })
-        });
-        const res = await resp.json();
-        if (res.status === "success" && res.links) {
-          generatedWaLinks = res.links;
-          const container = document.getElementById("waBulkResults");
-          container.innerHTML = `
-            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
-              <span class="text-xs font-semibold text-slate-300">${res.total_links} WhatsApp linki hazırlandı</span>
-              <button onclick="openAllWhatsAppLinks()" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold">Hamısını Aç</button>
-            </div>
-          `;
-          res.links.forEach((item, idx) => {
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "flex items-center justify-between p-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs";
-            itemDiv.innerHTML = `
-              <div class="truncate max-w-[240px]">
-                <div class="font-semibold text-white truncate">${idx+1}. ${item.name || 'Ev Sahibi'}</div>
-                <div class="text-[10px] text-emerald-400 font-mono">+${item.phone}</div>
-              </div>
-              <div class="flex items-center space-x-1.5">
-                <a href="${item.whatsapp_link}" target="_blank" class="px-2.5 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white font-semibold transition-all">Aç</a>
-                <button onclick="navigator.clipboard.writeText('${item.whatsapp_link}'); this.innerText='Kopyalandı!';" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-all">Kopyala</button>
-              </div>
-            `;
-            container.appendChild(itemDiv);
-          });
-          container.classList.remove("hidden");
-        } else {
-          alert("Linklər yaradılarkən xəta baş verdi.");
-        }
-      } catch (err) {
-        console.error("WhatsApp Bulk error:", err);
-      }
-    }
-
-    function openAllWhatsAppLinks() {
-      if (!generatedWaLinks.length) return;
-      if (confirm(`Diqqət: Brauzer ${generatedWaLinks.length} yeni tab açacaq. Davam edilsin?`)) {
-        generatedWaLinks.forEach(item => {
-          window.open(item.whatsapp_link, "_blank");
-        });
-      }
-    }
   </script>
-
-  <!-- ================= WHATSAPP BULK MODAL ================= -->
-  <div id="waBulkModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="glass-card rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl relative">
-      <button onclick="closeWhatsAppBulkModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-
-      <div class="flex items-center space-x-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-          <i class="fa-brands fa-whatsapp text-xl"></i>
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-white">Toplu WhatsApp Mesaj Generatoru</h3>
-          <p class="text-xs text-slate-400">Bütün toplanmış lead-lərə fərdiləşdirilmiş mesaj linkləri yaradın</p>
-        </div>
-      </div>
-
-      <div class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Göndəriləcək Mesaj:</label>
-          <textarea id="waBulkMessage" rows="3" class="w-full glass-input rounded-xl p-3 text-xs text-white focus:outline-none" placeholder="Mesajınızı daxil edin...">Salam, elanınızla bağlı əlaqə saxlayıram. Ətraflı məlumat ala bilərəm?</textarea>
-        </div>
-
-        <div class="flex items-center justify-between pt-2">
-          <span id="waBulkCount" class="text-xs text-slate-400">0 lead seçilib</span>
-          <button onclick="generateWhatsAppLinks()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center space-x-2">
-            <i class="fa-solid fa-bolt"></i>
-            <span>Linkləri Yarat</span>
-          </button>
-        </div>
-
-        <div id="waBulkResults" class="hidden max-h-56 overflow-y-auto space-y-2 pt-2 border-t border-slate-800">
-        </div>
-      </div>
-    </div>
-  </div>
 </body>
 </html>

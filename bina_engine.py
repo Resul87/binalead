@@ -268,12 +268,7 @@ class BinaScraperEngine:
     def fetch_unmasked_phone(self, item_id: str) -> Optional[str]:
         url = f"https://bina.az/items/{item_id}/phones?react=true"
         try:
-            try:
-                from curl_cffi import requests as c_requests
-                resp = c_requests.get(url, impersonate="chrome124", timeout=8)
-            except Exception:
-                resp = self.session.get(url, timeout=8)
-
+            resp = self.session.get(url, timeout=10)
             if resp.status_code == 200:
                 phones = resp.json().get('phones', [])
                 if phones and isinstance(phones, list) and len(phones) > 0:
@@ -762,15 +757,6 @@ class BinaScraperEngine:
                 contact_name = (detail.get('contactName') or '').strip()
                 company_obj = detail.get('company') or {}
                 business_obj = detail.get('business') or {}
-                desc_raw = (detail.get('description') or '').lower()
-
-                # Makler komissiyası açar sözləri (bəzən mülkiyyətçi yazıb təsvirdə ofis haqqı istəyirlər)
-                agent_fee_markers = [
-                    'ofis haqqı', 'ofis haqqi', 'xidmət haqqı', 'xidmet haqqi', 
-                    'şirkət haqqı', 'sirket haqqi', 'komissiya 1%', 'komissiya 2%',
-                    'vasitəçilik haqqı', 'vasitecilik haqqi', 'agentlik haqqı'
-                ]
-                has_agent_fee = any(m in desc_raw for m in agent_fee_markers)
 
                 if target_type == "FSBO":
                     if contact_type == 'vasitəçi (agent)' or 'vasitəçi' in contact_type or 'agent' in contact_type:
@@ -785,11 +771,7 @@ class BinaScraperEngine:
                         self.stats["skipped"] += 1
                         self.callback("stats", self.stats)
                         continue
-                    if has_agent_fee:
-                        self.stats["skipped"] += 1
-                        self.callback("stats", self.stats)
-                        continue
-                    if contact_type and ('agent' in contact_type or 'vasitəçi' in contact_type or 'şirkət' in contact_type):
+                    if contact_type != 'mülkiyyətçi':
                         self.stats["skipped"] += 1
                         self.callback("stats", self.stats)
                         continue
@@ -799,9 +781,7 @@ class BinaScraperEngine:
                         'vasitəçi' in contact_type or
                         'agent' in contact_type or
                         company_obj.get('targetType') == 'AGENCY' or
-                        (business_obj and business_obj.get('name')) or
-                        has_agent_fee or
-                        self.is_agent_by_name(contact_name)
+                        (business_obj and business_obj.get('name'))
                     )
                     if not is_real_agent:
                         self.stats["skipped"] += 1
